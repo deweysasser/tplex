@@ -1,0 +1,9 @@
+type:
+    - one
+    - two
+    - three
+
+
+__templates__:
+  - tpl/template1.txt
+
