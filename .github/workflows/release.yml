@@ -44,23 +44,25 @@ jobs:
     needs:
       - build
     steps:
+    - uses: actions/checkout@v2
     - name: Download Artifacts
       uses: actions/download-artifact@v2
-#    - name: Install ChangeLog generator
-#      run: |
-#        wget https://github.com/git-chglog/git-chglog/releases/download/v0.15.1/git-chglog_0.15.1_linux_amd64.tar.gz
-#        tar xzf git-chglog*.tar.gz git-chglog
-#    - name: Generate Changelog
-#      run: ./git-chglog ${{ github.ref_name }} > changelog.txt
-#      if: ${{ startsWith(github.ref, 'ref/tags/') }}
-#    - name: Generate Changelog
-#      run: echo "Untagged release" > changelog.txt
-#      if: ${{ !startsWith(github.ref, 'ref/tags/') }}
+    - name: Install ChangeLog generator
+      run: |
+        wget https://github.com/git-chglog/git-chglog/releases/download/v0.15.1/git-chglog_0.15.1_linux_amd64.tar.gz
+        tar xzf git-chglog*.tar.gz git-chglog
+    - name: Generate Changelog for  ${{ github.ref_name }}
+      id: generate-changelog
+      run: ./git-chglog ${{ github.ref_name }} | tee changelog.txt
+      if: ${{ github.ref_type == 'tag' }}
+    - name: Generate Pseudo-changelog for  ${{ github.ref_name }}
+      id: generate-pseudo-changelog
+      run: echo "Untagged release ${{ github.ref }}" > changelog.txt
+      if: ${{ github.ref_type != 'tag' }}
     - name: Create Release
       id: create_release
       uses: softprops/action-gh-release@v1
       with:
         files: ./artifacts/*
-#        body_path: ./changelog.txt
-        body: "See diffs: https://github.com/github/linguist/compare/..${{ github.sha }}"
+        body_path: ./changelog.txt
         draft: true
