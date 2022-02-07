@@ -45,15 +45,23 @@ jobs:
       - build
     steps:
     - uses: actions/checkout@v2
+      with:
+        fetch-depth: 0
     - name: Download Artifacts
       uses: actions/download-artifact@v2
     - name: Install ChangeLog generator
       run: |
         wget https://github.com/git-chglog/git-chglog/releases/download/v0.15.1/git-chglog_0.15.1_linux_amd64.tar.gz
         tar xzf git-chglog*.tar.gz git-chglog
+    - name: "Get Last Release"
+      id: last_release
+      uses: InsonusK/get-latest-release@v1.0.1
+      with:
+        myToken: ${{ github.token }}
+        exclude_types: "draft|prerelease"
     - name: Generate Changelog for  ${{ github.ref_name }}
       id: generate-changelog
-      run: ./git-chglog ${{ github.ref_name }} | tee changelog.txt
+      run: ./git-chglog ${{steps.last_release.outputs.tag_name}}..${{ github.ref_name }} > tee changelog.txt
       if: ${{ github.ref_type == 'tag' }}
     - name: Generate Pseudo-changelog for  ${{ github.ref_name }}
       id: generate-pseudo-changelog
